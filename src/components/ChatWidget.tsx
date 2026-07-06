@@ -270,7 +270,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   return (
     <>
       {open && !minimized && (
-        <div className="fixed bottom-32 right-6 z-50 w-[380px] max-w-[calc(100vw-32px)] h-[600px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200">
+        <div className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-32px)] h-[600px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-[#f89d20] text-white">
             <div className="flex items-center gap-2">
@@ -392,7 +392,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                   onClick={handleStart}
                   disabled={!nome.trim() || !telefone.trim() || creating}
                   className="w-full h-12 rounded-xl mt-1 font-bold text-sm disabled:opacity-50 text-white"
-                  style={{ backgroundColor: nome.trim() && telefone.trim() ? '#f89d20' : '#e4e4e7' }}
+                  style={{ backgroundColor: nome.trim() && telefone.trim() ? '#000000' : '#e4e4e7' }}
                 >
                   {creating ? (
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -413,14 +413,6 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                 </h2>
               </div>
 
-              <div className="text-sm text-zinc-600 leading-relaxed mb-4">
-                <p className="mb-2">
-                  Ao enviar sua reclamação, você declara que as informações prestadas são
-                  verdadeiras e se responsabiliza civil e criminalmente pelo conteúdo
-                  relatado.
-                </p>
-              </div>
-
               <button
                 type="button"
                 onClick={() => setShowFullTerm(!showFullTerm)}
@@ -431,7 +423,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
               </button>
 
               {showFullTerm && (
-                <div className="text-sm text-zinc-600 leading-relaxed mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200 max-h-52 overflow-y-auto">
+                <div className="text-sm text-zinc-600 leading-relaxed mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200">
                   <p className="mb-2">
                     <strong>TERMO DE RESPONSABILIDADE E CIÊNCIA</strong>
                   </p>
@@ -739,7 +731,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-28 right-6 z-50 w-16 h-16 rounded-full bg-[#f89d20] text-white shadow-lg hover:bg-[#e38416] transition-colors flex items-center justify-center shadow-[#f89d20]/50"
+          className="fixed bottom-8 right-6 z-50 w-16 h-16 rounded-full bg-[#f89d20] text-white shadow-lg hover:bg-[#e38416] transition-colors flex items-center justify-center shadow-[#f89d20]/50"
         >
           <MessageCircle size={32} />
         </button>

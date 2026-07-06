@@ -22,7 +22,7 @@ function LogoMark() {
           <span className="font-black">defesa</span>
           <span className="font-light text-slate-300"> do consumidor</span>
         </p>
-        <p className="mt-1 text-[0.58rem] font-medium uppercase tracking-[0.38em] text-slate-300 sm:text-[0.62rem]">canal de atendimento</p>
+        <p className="hidden sm:block mt-1 text-[0.58rem] font-medium uppercase tracking-[0.38em] text-slate-300 sm:text-[0.62rem]">canal de atendimento</p>
       </div>
     </div>
   );
@@ -227,8 +227,8 @@ export default function LandingIndex() {
 
   return (
     <div id="topo" className="min-h-screen bg-[#f4f7fb] text-[#0f1b33]">
-      <header className="fixed inset-x-0 top-0 z-40 border-b-2 border-[#f89d20]/90 bg-[#163b78]/92 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+      <header className="fixed inset-x-0 top-0 z-40 border-b-2 border-[#f89d20]/90 bg-[#163b78]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-1 sm:gap-6 px-2 py-3 sm:px-6 sm:py-4 lg:px-8">
           <a href="#topo" className="shrink-0">
             <LogoMark />
           </a>
@@ -252,8 +252,8 @@ export default function LandingIndex() {
                 );
               })}
             </div>
-            <a href="#contato" className="inline-flex items-center gap-2 rounded-full bg-[#f89d20] px-4 py-2 text-sm font-bold text-[#0f1b33] shadow-[0_12px_24px_rgba(248,157,32,0.28)] transition hover:-translate-y-0.5 hover:bg-[#ffb549]">
-              <PhoneIcon className="h-4 w-4" />
+            <a href="#contato" className="inline-flex items-center gap-1.5 rounded-full bg-[#f89d20] px-3 py-1.5 text-[0.7rem] font-bold text-[#0f1b33] shadow-[0_12px_24px_rgba(248,157,32,0.28)] transition hover:-translate-y-0.5 hover:bg-[#ffb549] sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+              <PhoneIcon className="h-3 w-3 sm:h-4 sm:w-4" />
               Atendimento
             </a>
           </div>
