@@ -309,13 +309,6 @@ export default function LandingIndex() {
                 </a>
               </div>
 
-              <div className="mt-10 grid gap-3 sm:grid-cols-3">
-                {['Atendimento por canal direto', 'Encaminhamento técnico', 'Conteúdo prático e preventivo'].map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4 text-sm font-medium text-slate-100 shadow-[0_14px_30px_rgba(5,18,42,0.16)]">
-                    {item}
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>

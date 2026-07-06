@@ -39,7 +39,7 @@ export interface ChatWidgetHandle {
 
 const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_props, ref) {
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<'intro' | 'terms' | 'chat'>('intro');
+  const [step, setStep] = useState<'intro' | 'chat'>('intro');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [convId, setConvId] = useState<string | null>(null);
@@ -164,13 +164,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
     setWasOnline(currentlyOnline);
   }, [currentlyOnline, wasOnline]);
 
-  const handleStart = () => {
-    if (!nome.trim() || !telefone.trim() || creating) return;
-    setStep('terms');
-  };
-
-  const handleAcceptTerms = async () => {
-    if (!nome.trim() || !telefone.trim() || creating) return;
+  const handleStart = async () => {
+    if (!nome.trim() || !telefone.trim() || !termsAccepted || creating) return;
     setCreating(true);
     try {
       const existing = await findConversationsByPhone(telefone.trim());
@@ -202,10 +197,6 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
     } finally {
       setCreating(false);
     }
-  };
-
-  const handleDeclineTerms = () => {
-    setStep('intro');
   };
 
   const handleSend = async () => {
@@ -352,16 +343,18 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
               <span className="inline-block w-6 h-6 border-2 border-[#f89d20] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : step === 'intro' ? (
-            <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-              <div className="w-14 h-14 rounded-xl bg-[#f89d20] flex items-center justify-center mb-4">
-                <Scale size={24} className="text-white" />
+            <div className="flex-1 flex flex-col px-6 py-6 overflow-y-auto">
+              <div className="flex flex-col items-center mb-4">
+                <div className="w-14 h-14 rounded-xl bg-[#f89d20] flex items-center justify-center mb-4">
+                  <Scale size={24} className="text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-zinc-900 mb-1">
+                  Defesa do Consumidor
+                </h2>
+                <p className="text-sm text-zinc-500 text-center mb-2" style={{ maxWidth: 240 }}>
+                  Preencha seus dados para enviar sua reclamação.
+                </p>
               </div>
-              <h2 className="text-xl font-bold text-zinc-900 mb-1">
-                Defesa do Consumidor
-              </h2>
-              <p className="text-sm text-zinc-500 text-center mb-6" style={{ maxWidth: 240 }}>
-                Preencha seus dados para enviar sua reclamação.
-              </p>
 
               <div className="w-full flex flex-col gap-3">
                 <div className="flex items-center bg-zinc-100 rounded-xl px-4 h-12">
@@ -387,43 +380,19 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                     onKeyDown={handleKeyDown}
                   />
                 </div>
-
-                <button
-                  onClick={handleStart}
-                  disabled={!nome.trim() || !telefone.trim() || creating}
-                  className="w-full h-12 rounded-xl mt-1 font-bold text-sm disabled:opacity-50 text-white"
-                  style={{ backgroundColor: nome.trim() && telefone.trim() ? '#000000' : '#e4e4e7' }}
-                >
-                  {creating ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    'Enviar reclamação'
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : step === 'terms' ? (
-            <div className="flex-1 flex flex-col px-6 py-8 overflow-y-auto">
-              <div className="flex flex-col items-center mb-4">
-                <div className="w-14 h-14 rounded-xl bg-[#f89d20] flex items-center justify-center mb-4">
-                  <Scale size={24} className="text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-zinc-900 mb-1">
-                  Termo de Responsabilidade
-                </h2>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowFullTerm(!showFullTerm)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-[#f89d20] mb-4 hover:underline self-start"
+                className="flex items-center gap-1.5 text-sm font-semibold text-[#f89d20] my-3 hover:underline self-start"
               >
                 <ChevronDown size={14} className={`transition-transform ${showFullTerm ? 'rotate-180' : ''}`} />
-                {showFullTerm ? 'Ocultar termo completo' : 'Ler termo completo'}
+                {showFullTerm ? 'Ocultar Termo de Responsabilidade' : 'Ler Termo de Responsabilidade'}
               </button>
 
               {showFullTerm && (
-                <div className="text-sm text-zinc-600 leading-relaxed mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                <div className="text-sm text-zinc-600 leading-relaxed mb-3 p-3 rounded-xl bg-zinc-50 border border-zinc-200">
                   <p className="mb-2">
                     <strong>TERMO DE RESPONSABILIDADE E CIÊNCIA</strong>
                   </p>
@@ -468,7 +437,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                 </div>
               )}
 
-              <label className="flex items-start gap-3 mb-6 cursor-pointer">
+              <label className="flex items-start gap-3 mb-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={termsAccepted}
@@ -480,27 +449,18 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                 </span>
               </label>
 
-              <div className="w-full flex flex-col gap-3">
-                <button
-                  onClick={handleAcceptTerms}
-                  disabled={!termsAccepted || creating}
-                  className="w-full h-12 rounded-xl font-bold text-sm text-white disabled:opacity-50"
-                  style={{ backgroundColor: termsAccepted ? '#f89d20' : '#e4e4e7' }}
-                >
-                  {creating ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    'Aceitar e continuar'
-                  )}
-                </button>
-                <button
-                  onClick={handleDeclineTerms}
-                  disabled={creating}
-                  className="w-full h-12 rounded-xl font-bold text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
-                >
-                  Recusar
-                </button>
-              </div>
+              <button
+                onClick={handleStart}
+                disabled={!nome.trim() || !telefone.trim() || !termsAccepted || creating}
+                className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-50 text-white"
+                style={{ backgroundColor: '#000000' }}
+              >
+                {creating ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  'Enviar reclamação'
+                )}
+              </button>
             </div>
           ) : showingHistory ? (
             <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin">
