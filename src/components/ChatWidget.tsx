@@ -57,6 +57,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showFullTerm, setShowFullTerm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -309,6 +311,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                     setTelefone('');
                     setShowingHistory(false);
                     setSelectedConvId(null);
+                    setTermsAccepted(false);
+                    setShowFullTerm(false);
                   }}
                   className="text-[11px] px-2 py-1 rounded-lg hover:bg-white/20 font-medium"
                 >
@@ -332,6 +336,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                   setInput('');
                   setShowingHistory(false);
                   setSelectedConvId(null);
+                  setTermsAccepted(false);
+                  setShowFullTerm(false);
                 }}
                 className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center"
               >
@@ -397,30 +403,97 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
               </div>
             </div>
           ) : step === 'terms' ? (
-            <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-              <div className="w-14 h-14 rounded-xl bg-[#f89d20] flex items-center justify-center mb-4">
-                <Scale size={24} className="text-white" />
+            <div className="flex-1 flex flex-col px-6 py-8 overflow-y-auto">
+              <div className="flex flex-col items-center mb-4">
+                <div className="w-14 h-14 rounded-xl bg-[#f89d20] flex items-center justify-center mb-4">
+                  <Scale size={24} className="text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-zinc-900 mb-1">
+                  Termo de Responsabilidade
+                </h2>
               </div>
-              <h2 className="text-xl font-bold text-zinc-900 mb-1">
-                Termo de Ciência
-              </h2>
-              <div className="text-sm text-zinc-600 text-center mb-6 px-2 leading-relaxed" style={{ maxWidth: 280 }}>
-                <p className="mb-3">
-                  Ao preencher seus dados (nome e telefone), você autoriza o uso dessas
-                  informações para que nossa equipe de Defesa do Consumidor possa
-                  entrar em contato e dar andamento à sua reclamação.
-                </p>
-                <p>
-                  Seus dados não serão compartilhados com terceiros sem seu
-                  consentimento, conforme a Lei Geral de Proteção de Dados (LGPD).
+
+              <div className="text-sm text-zinc-600 leading-relaxed mb-4">
+                <p className="mb-2">
+                  Ao enviar sua reclamação, você declara que as informações prestadas são
+                  verdadeiras e se responsabiliza civil e criminalmente pelo conteúdo
+                  relatado.
                 </p>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowFullTerm(!showFullTerm)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-[#f89d20] mb-4 hover:underline self-start"
+              >
+                <ChevronDown size={14} className={`transition-transform ${showFullTerm ? 'rotate-180' : ''}`} />
+                {showFullTerm ? 'Ocultar termo completo' : 'Ler termo completo'}
+              </button>
+
+              {showFullTerm && (
+                <div className="text-sm text-zinc-600 leading-relaxed mb-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200 max-h-52 overflow-y-auto">
+                  <p className="mb-2">
+                    <strong>TERMO DE RESPONSABILIDADE E CIÊNCIA</strong>
+                  </p>
+                  <p className="mb-2">
+                    Ao utilizar este canal de atendimento da Defesa do Consumidor, o usuário
+                    declara estar ciente e de acordo com os seguintes termos:
+                  </p>
+                  <ol className="list-decimal pl-5 space-y-1 mb-2">
+                    <li>
+                      <strong>Veracidade das informações:</strong> O usuário assume total
+                      responsabilidade pelas informações fornecidas, incluindo nome, telefone
+                      e relato do ocorrido, respondendo civil e criminalmente por eventuais
+                      falsidades.
+                    </li>
+                    <li>
+                      <strong>Finalidade do atendimento:</strong> Este canal tem caráter
+                      informativo e de orientação, não substituindo advogado ou autoridade
+                      competente para ações judiciais.
+                    </li>
+                    <li>
+                      <strong>Privacidade dos dados:</strong> Os dados fornecidos serão
+                      utilizados exclusivamente para fins de atendimento e mediação da
+                      reclamação, não sendo compartilhados com terceiros sem autorização
+                      prévia, nos termos da Lei Geral de Proteção de Dados (LGPD - Lei nº
+                      13.709/2018).
+                    </li>
+                    <li>
+                      <strong>Prazos de resposta:</strong> O usuário reconhece que os prazos
+                      de retorno dependem da complexidade do caso e da disponibilidade da
+                      equipe de atendimento.
+                    </li>
+                    <li>
+                      <strong>Conduta adequada:</strong> O usuário se compromete a utilizar
+                      linguagem respeitosa e adequada, sendo passível de bloqueio em caso de
+                      ofensas, ameaças ou descumprimento das diretrizes do canal.
+                    </li>
+                  </ol>
+                  <p>
+                    Ao marcar a opção abaixo, o usuário confirma que leu, compreendeu e
+                    aceita integralmente os termos deste documento.
+                  </p>
+                </div>
+              )}
+
+              <label className="flex items-start gap-3 mb-6 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={e => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-[#f89d20]"
+                />
+                <span className="text-sm text-zinc-600 leading-relaxed">
+                  Li e aceito os termos de responsabilidade e ciência acima.
+                </span>
+              </label>
+
               <div className="w-full flex flex-col gap-3">
                 <button
                   onClick={handleAcceptTerms}
-                  disabled={creating}
+                  disabled={!termsAccepted || creating}
                   className="w-full h-12 rounded-xl font-bold text-sm text-white disabled:opacity-50"
-                  style={{ backgroundColor: '#f89d20' }}
+                  style={{ backgroundColor: termsAccepted ? '#f89d20' : '#e4e4e7' }}
                 >
                   {creating ? (
                     <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
