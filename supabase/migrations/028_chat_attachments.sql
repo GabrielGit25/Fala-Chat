@@ -13,9 +13,14 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('chat-attachments', 'chat-attachments', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Allow public access to the bucket
-CREATE POLICY "chat_attachments_public_access" ON storage.objects
-  FOR ALL
+-- Allow anon to upload files to the bucket
+CREATE POLICY "chat_attachments_insert" ON storage.objects
+  FOR INSERT
   TO anon
-  USING (bucket_id = 'chat-attachments')
   WITH CHECK (bucket_id = 'chat-attachments');
+
+-- Allow anon to read files from the bucket
+CREATE POLICY "chat_attachments_select" ON storage.objects
+  FOR SELECT
+  TO anon
+  USING (bucket_id = 'chat-attachments');
