@@ -40,7 +40,22 @@ export async function createConversa(data: {
     .single();
 
   if (error) throw new Error(error.message);
-  return result as Conversation;
+  const conversa = result as Conversation;
+
+  // Auto-greeting so the citizen sees an immediate response instead of a blank
+  // thread while waiting for the assigned atendente. Non-critical — a failure
+  // here shouldn't block conversation creation.
+  const { error: greetingError } = await supabase.from(MENSAGENS_TABLE).insert([
+    {
+      conversa_id: conversa.id,
+      remetente_tipo: 'sistema',
+      remetente_nome: 'Sistema',
+      mensagem: `Olá, ${data.nome_solicitante}!\nComo podemos ajudar?`,
+    },
+  ]);
+  if (greetingError) console.warn('Failed to send greeting message:', greetingError.message);
+
+  return conversa;
 }
 
 export async function getConversa(id: string): Promise<Conversation | null> {

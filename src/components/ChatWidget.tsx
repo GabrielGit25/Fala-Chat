@@ -199,13 +199,16 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
         setConvId(newConv.id);
         setConv(newConv);
         setAllConvs(prev => [newConv, ...prev]);
+        // Seed with the new conversation's own messages (the auto-greeting) rather
+        // than appending onto the previous (resolved) conversation's thread.
+        const greeting = await listMensagens(newConv.id);
         const msg = await sendMensagem(newConv.id, {
           remetente_tipo: 'citizen',
           remetente_nome: nome,
           mensagem: text || null,
           anexo,
         });
-        setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
+        setMessages([...greeting, msg]);
       } else {
         const msg = await sendMensagem(convId, {
           remetente_tipo: 'citizen',
