@@ -425,32 +425,92 @@ export default function LandingIndex() {
           </div>
         </section>
 
-        {/* ============ NÚMEROS — +4 MIL CONSUMIDORES ============ */}
-        <section className="pattern-rings relative overflow-hidden bg-[#226ea9] text-white">
-          <div className="absolute inset-x-0 top-2 text-center text-[5rem] font-black tracking-[-0.08em] text-white/6 sm:text-[7rem] lg:text-[10rem]">
-            RJ
-          </div>
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-3 lg:px-8 lg:py-20">
-            <div className="relative text-center lg:text-left">
-              <p className="text-6xl font-black leading-none text-[#ffad39] sm:text-7xl">+4 mil</p>
-              <h3 className="mt-4 text-3xl font-black uppercase leading-[1.02] tracking-tight sm:text-4xl">
-                consumidores orientados no Rio
-              </h3>
-              <p className="mt-4 text-base leading-7 text-blue-100">em menos de um ano!</p>
+        {/* ============ GABINETE ITINERANTE + GRÁFICO ============ */}
+        <section id="gabinete" className="relative overflow-hidden bg-[#f7faff] py-20 sm:py-24">
+          <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.98fr_1.02fr] lg:px-8">
+            <div>
+              <SectionEyebrow>mais perto para servir melhor!</SectionEyebrow>
+              <h2 className="mt-5 text-4xl font-black uppercase leading-none tracking-tight text-[#163b78] sm:text-5xl">
+                O Gabinete do Librelon
+                <span className="text-[#f89d20]"> veio até você!</span>
+              </h2>
+              <Swoosh />
+              <p className="mt-7 text-lg leading-8 text-slate-600">
+                A Defesa do Consumidor precisa chegar onde o problema acontece: no bairro, na comunidade, no comércio
+                local, na praça, no ponto de ônibus e na porta da casa de quem paga a conta.
+              </p>
+
+              <div className="mt-9 grid gap-5">
+                {gabinetePillars.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <article
+                      key={item.title}
+                      className="flex items-start gap-5 rounded-[1.75rem] border border-[#dbe6f4] bg-white p-6 shadow-[0_22px_60px_rgba(27,59,117,0.08)] transition hover:-translate-y-1"
+                    >
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#163b78] text-white">
+                        <Icon className="h-7 w-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black uppercase tracking-tight text-[#f89d20]">{item.title}</h3>
+                        <p className="mt-2 text-base leading-7 text-slate-600">{item.description}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-            <div className="relative text-center lg:text-left">
-              <p className="text-6xl font-black leading-none text-[#ffad39] sm:text-7xl">Centenas</p>
-              <h3 className="mt-4 text-3xl font-black uppercase leading-[1.02] tracking-tight sm:text-4xl">
-                de demandas semanais
-              </h3>
-              <p className="mt-4 text-base leading-7 text-blue-100">recebidas de toda baixada, capital e interior do Rio</p>
-            </div>
-            <div className="relative text-center lg:text-left">
-              <p className="text-6xl font-black leading-none text-[#ffad39] sm:text-7xl">2º</p>
-              <h3 className="mt-4 text-3xl font-black uppercase leading-[1.02] tracking-tight sm:text-4xl">
-                mandato como deputado estadual
-              </h3>
-              <p className="mt-4 text-base leading-7 text-blue-100">Membro Efetivo da Comissão de Defesa do Consumidor na ALERJ</p>
+
+            <div className="flex flex-col gap-6">
+              <div className="rounded-[2rem] bg-[#15376f] p-8 text-white shadow-[0_28px_70px_rgba(10,31,65,0.28)] sm:p-10">
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-[#ffc264]">Consumidor, você não está sozinho!</p>
+                <h3 className="mt-4 text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl">
+                  <span className="text-[#ffad39]">+ de 4 mil</span>
+                  <br />
+                  consumidores orientados no Rio
+                </h3>
+                <p className="mt-3 inline-block rounded bg-[#f89d20] px-3 py-1 text-sm font-black uppercase tracking-[0.14em] text-[#102040]">
+                  em menos de um ano!
+                </p>
+
+                <p className="mt-8 text-sm font-bold uppercase tracking-[0.2em] text-blue-100">
+                  Principais categorias de consumo:
+                </p>
+                <div className="mt-5 space-y-5">
+                  {categories.map((cat) => (
+                    <div key={cat.label}>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="h-3.5 w-3.5 rounded-sm" style={{ backgroundColor: cat.color }} />
+                          <p className="text-base font-semibold text-white">{cat.label}</p>
+                        </div>
+                        <p className="text-lg font-black text-white">{cat.value.toLocaleString("pt-BR")}%</p>
+                      </div>
+                      <div className="mt-2 h-4 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${(cat.value / 45) * 100}%`, backgroundColor: cat.color }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-[#dce6f4] bg-white p-8 shadow-[0_24px_70px_rgba(27,59,117,0.1)]">
+                <p className="text-2xl font-black uppercase tracking-tight text-[#163b78]">
+                  Vai comprar? Melhor pesquisar.
+                  <br />
+                  Na dúvida, <span className="rounded bg-[#f89d20] px-2 text-[#102040]">chama o Librelon!</span>
+                </p>
+                <button
+                  onClick={() => chatRef.current?.openChat()}
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#163b78] px-6 py-3 text-sm font-extrabold uppercase tracking-[0.16em] text-white transition hover:-translate-y-0.5 hover:bg-[#1f4b96]"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  Falar com a equipe
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -557,96 +617,6 @@ export default function LandingIndex() {
                   </article>
                 );
               })}
-            </div>
-          </div>
-        </section>
-
-        {/* ============ GABINETE ITINERANTE + GRÁFICO ============ */}
-        <section id="gabinete" className="relative overflow-hidden bg-[#f7faff] py-20 sm:py-24">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.98fr_1.02fr] lg:px-8">
-            <div>
-              <SectionEyebrow>mais perto para servir melhor!</SectionEyebrow>
-              <h2 className="mt-5 text-4xl font-black uppercase leading-none tracking-tight text-[#163b78] sm:text-5xl">
-                O Gabinete do Librelon
-                <span className="text-[#f89d20]"> veio até você!</span>
-              </h2>
-              <Swoosh />
-              <p className="mt-7 text-lg leading-8 text-slate-600">
-                A Defesa do Consumidor precisa chegar onde o problema acontece: no bairro, na comunidade, no comércio
-                local, na praça, no ponto de ônibus e na porta da casa de quem paga a conta.
-              </p>
-
-              <div className="mt-9 grid gap-5">
-                {gabinetePillars.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <article
-                      key={item.title}
-                      className="flex items-start gap-5 rounded-[1.75rem] border border-[#dbe6f4] bg-white p-6 shadow-[0_22px_60px_rgba(27,59,117,0.08)] transition hover:-translate-y-1"
-                    >
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#163b78] text-white">
-                        <Icon className="h-7 w-7" />
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-black uppercase tracking-tight text-[#f89d20]">{item.title}</h3>
-                        <p className="mt-2 text-base leading-7 text-slate-600">{item.description}</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="rounded-[2rem] bg-[#15376f] p-8 text-white shadow-[0_28px_70px_rgba(10,31,65,0.28)] sm:p-10">
-                <p className="text-sm font-bold uppercase tracking-[0.24em] text-[#ffc264]">Consumidor, você não está sozinho!</p>
-                <h3 className="mt-4 text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl">
-                  <span className="text-[#ffad39]">+ de 4 mil</span>
-                  <br />
-                  consumidores orientados no Rio
-                </h3>
-                <p className="mt-3 inline-block rounded bg-[#f89d20] px-3 py-1 text-sm font-black uppercase tracking-[0.14em] text-[#102040]">
-                  em menos de um ano!
-                </p>
-
-                <p className="mt-8 text-sm font-bold uppercase tracking-[0.2em] text-blue-100">
-                  Principais categorias de consumo:
-                </p>
-                <div className="mt-5 space-y-5">
-                  {categories.map((cat) => (
-                    <div key={cat.label}>
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <span className="h-3.5 w-3.5 rounded-sm" style={{ backgroundColor: cat.color }} />
-                          <p className="text-base font-semibold text-white">{cat.label}</p>
-                        </div>
-                        <p className="text-lg font-black text-white">{cat.value.toLocaleString("pt-BR")}%</p>
-                      </div>
-                      <div className="mt-2 h-4 overflow-hidden rounded-full bg-white/10">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${(cat.value / 45) * 100}%`, backgroundColor: cat.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-[#dce6f4] bg-white p-8 shadow-[0_24px_70px_rgba(27,59,117,0.1)]">
-                <p className="text-2xl font-black uppercase tracking-tight text-[#163b78]">
-                  Vai comprar? Melhor pesquisar.
-                  <br />
-                  Na dúvida, <span className="rounded bg-[#f89d20] px-2 text-[#102040]">chama o Librelon!</span>
-                </p>
-                <button
-                  onClick={() => chatRef.current?.openChat()}
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#163b78] px-6 py-3 text-sm font-extrabold uppercase tracking-[0.16em] text-white transition hover:-translate-y-0.5 hover:bg-[#1f4b96]"
-                >
-                  <WhatsAppIcon className="h-5 w-5" />
-                  Falar com a equipe
-                </button>
-              </div>
             </div>
           </div>
         </section>
@@ -769,104 +739,34 @@ export default function LandingIndex() {
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,26,56,0.9),rgba(6,18,40,0.94))]" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-              <div>
-                <SectionEyebrow light>mais perto para servir melhor!</SectionEyebrow>
-                <h2 className="mt-5 max-w-3xl text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl">
-                  Para ouvir, entender
-                  <span className="text-[#ffad39]"> e lutar pelo seu direito!</span>
-                </h2>
-                <p className="mt-7 max-w-2xl text-lg leading-8 text-blue-100">
-                  Não importa se você é morador da baixada, capital ou do interior do Rio. Se você é consumidor, saiba
-                  que alguém luta por você! Fale com o gabinete pelos canais oficiais.
-                </p>
+            <div className="flex flex-col items-center text-center">
+              <SectionEyebrow light>mais perto para servir melhor!</SectionEyebrow>
+              <h2 className="mt-5 max-w-3xl text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl">
+                Para ouvir, entender
+                <span className="text-[#ffad39]"> e lutar pelo seu direito!</span>
+              </h2>
+              <p className="mt-7 max-w-2xl text-lg leading-8 text-blue-100">
+                Não importa se você é morador da baixada, capital ou do interior do Rio. Se você é consumidor, saiba
+                que alguém luta por você! Fale com o gabinete pelos canais oficiais.
+              </p>
 
-                <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {[
-                    { title: "Instagram", value: "@danniellibrelonrj", icon: InstagramIcon },
-                    { title: "Facebook", value: "Danniel Librelon", icon: FacebookIcon },
-                    { title: "WhatsApp", value: "(21) 99566-1781", icon: WhatsAppIcon },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={item.title} className="rounded-[1.8rem] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f89d20] text-[#102040]">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <p className="mt-4 text-sm font-bold uppercase tracking-[0.22em] text-[#ffc264]">{item.title}</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+              <div className="mt-10 grid w-full gap-5 sm:grid-cols-2 lg:grid-cols-3 text-left">
+                {[
+                  { title: "Instagram", value: "@danniellibrelonrj", icon: InstagramIcon },
+                  { title: "Facebook", value: "Danniel Librelon", icon: FacebookIcon },
+                  { title: "WhatsApp", value: "(21) 99566-1781", icon: WhatsAppIcon },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.title} className="rounded-[1.8rem] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f89d20] text-[#102040]">
+                        <Icon className="h-5 w-5" />
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="rounded-[2rem] border border-white/10 bg-white/10 p-7 shadow-[0_28px_70px_rgba(1,10,24,0.35)] backdrop-blur-sm sm:p-8">
-                <h3 className="text-2xl font-black tracking-tight text-white">Gabinete do Librelon</h3>
-                <p className="mt-3 text-base leading-7 text-blue-100">
-                  Para <span className="font-bold text-[#ffc264]">OUVIR</span> sua demanda,{" "}
-                  <span className="font-bold text-[#ffc264]">ENTENDER</span> sua dor e{" "}
-                  <span className="font-bold text-[#ffc264]">LUTAR</span> pelo seu{" "}
-                  <span className="font-bold text-[#ffc264]">DIREITO!</span>
-                </p>
-
-                <h4 className="mt-6 text-center text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
-                  Mais perto<br />
-                  <span className="text-[#ffad39]">para </span>
-                  <span className="rounded bg-[#f89d20] px-2 text-[#102040]">servir melhor!</span>
-                </h4>
-
-                {/* QR Code */}
-                <div className="mt-6 flex justify-center">
-                  <div className="rounded-2xl bg-white p-4 shadow-[0_14px_40px_rgba(0,0,0,0.3)]">
-                    <img
-                      src="/images/qrcode-whatsapp.jpg"
-                      alt="QR Code — Escaneie para falar pelo WhatsApp"
-                      className="h-44 w-44 object-contain sm:h-52 sm:w-52"
-                    />
-                  </div>
-                </div>
-                <p className="mt-3 text-center text-sm font-semibold text-blue-100">
-                  Escaneie o QR Code para falar diretamente com o Gabinete
-                </p>
-
-                <button
-                  onClick={() => chatRef.current?.openChat()}
-                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-full bg-[#22c55e] px-6 py-4 text-lg font-black text-white transition hover:-translate-y-0.5 hover:bg-[#2ed36b]"
-                >
-                  <WhatsAppIcon className="h-6 w-6" />
-                  Iniciar atendimento
-                </button>
-
-                {/* Canais */}
-                <div className="mt-6 space-y-4">
-                  {[
-                    { icon: InstagramIcon, label: "DANNIEL LIBRELON RJ" },
-                    { icon: FacebookIcon, label: "DANNIEL LIBRELON" },
-                    { icon: WhatsAppIcon, label: "(21) 99566-1781" },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <a
-                        key={item.label}
-                        href="#contato"
-                        className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/8 px-5 py-3 transition hover:border-[#f89d20] hover:bg-white/12"
-                      >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f89d20] text-[#102040]">
-                          <Icon className="h-[18px] w-[18px]" />
-                        </div>
-                        <span className="text-base font-bold tracking-wide text-white">{item.label}</span>
-                      </a>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-8 border-t border-white/10 pt-6">
-                  <p className="text-center text-lg italic text-blue-100">
-                    <span className="font-black text-[#ffc264]">humanizar</span> é a melhor forma de{" "}
-                    <span className="font-black text-white">representar</span>
-                  </p>
-                </div>
+                      <p className="mt-4 text-sm font-bold uppercase tracking-[0.22em] text-[#ffc264]">{item.title}</p>
+                      <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
