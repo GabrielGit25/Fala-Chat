@@ -7,8 +7,8 @@ type IconProps = {
 
 function LogoMark() {
   return (
-    <div className="flex items-center gap-3">
-      <svg viewBox="0 0 24 24" className="h-12 w-12 shrink-0 sm:h-14 sm:w-14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <svg viewBox="0 0 24 24" className="h-9 w-9 shrink-0 sm:h-12 sm:w-12 md:h-14 md:w-14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <defs>
           <linearGradient id="brand-orange" x1="0%" x2="100%" y1="0%" y2="100%">
             <stop offset="0%" stopColor="#ffbf5c" />
@@ -20,7 +20,7 @@ function LogoMark() {
         <path d="M8 6v8" stroke="#9ec5ff" />
       </svg>
       <div className="leading-none">
-        <p className="text-xl tracking-tight text-white sm:text-2xl">
+        <p className="text-base tracking-tight text-white sm:text-xl md:text-2xl">
           <span className="font-black">defesa</span>
           <span className="font-light text-slate-300"> do consumidor</span>
         </p>
@@ -317,34 +317,55 @@ export default function LandingIndex() {
   return (
     <div id="topo" className="min-h-screen bg-[#f4f7fb] text-[#0f1b33]">
       <header className="fixed inset-x-0 top-0 z-40 border-b-2 border-[#f89d20]/90 bg-[#163b78]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
-          <a href="#topo" className="shrink-0">
-            <LogoMark />
-          </a>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2">
-              {socialLinks.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    aria-label={item.label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white transition hover:-translate-y-0.5 hover:border-[#f89d20] hover:text-[#ffc264]"
-                  >
-                    <Icon className="h-[18px] w-[18px]" />
-                  </a>
-                );
-              })}
-            </div>
-            <a
-              href="#contato"
-              className="inline-flex items-center gap-2 rounded-full bg-[#f89d20] px-4 py-2 text-sm font-bold text-[#0f1b33] shadow-[0_12px_24px_rgba(248,157,32,0.28)] transition hover:-translate-y-0.5 hover:bg-[#ffb549]"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              Chama o Librelon
+        <div className="mx-auto max-w-7xl px-3 py-2.5 sm:px-6 sm:py-4 lg:px-8">
+          {/* Linha principal: logo + ícones sociais (desktop) + botão CTA */}
+          <div className="flex items-center justify-between gap-3">
+            <a href="#topo" className="shrink-0">
+              <LogoMark />
             </a>
+
+            <div className="flex items-center gap-3">
+              {/* Ícones sociais — visíveis inline apenas em sm+ */}
+              <div className="hidden sm:flex items-center gap-2">
+                {socialLinks.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      aria-label={item.label}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white transition hover:-translate-y-0.5 hover:border-[#f89d20] hover:text-[#ffc264]"
+                    >
+                      <Icon className="h-[18px] w-[18px]" />
+                    </a>
+                  );
+                })}
+              </div>
+              <a
+                href="#contato"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#f89d20] px-3 py-1.5 text-xs font-bold text-[#0f1b33] shadow-[0_12px_24px_rgba(248,157,32,0.28)] transition hover:-translate-y-0.5 hover:bg-[#ffb549] sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+              >
+                <PhoneIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Chama o Librelon
+              </a>
+            </div>
+          </div>
+
+          {/* Ícones sociais — segunda linha, visível apenas em mobile */}
+          <div className="mt-2 flex items-center justify-center gap-2 sm:hidden">
+            {socialLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  aria-label={item.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white transition hover:-translate-y-0.5 hover:border-[#f89d20] hover:text-[#ffc264]"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              );
+            })}
           </div>
         </div>
       </header>
@@ -551,8 +572,7 @@ export default function LandingIndex() {
             <div className="rounded-[2rem] border border-[#dce6f4] bg-[linear-gradient(180deg,#f9fbff_0%,#eff5fd_100%)] p-8 shadow-[0_24px_80px_rgba(27,59,117,0.12)]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-[#2c69b1]">Palabra do deputado</p>
-                  <h3 className="mt-2 text-2xl font-black text-[#163b78]">"Defender o consumidor é defender quem luta"</h3>
+                  <h3 className="text-2xl font-black text-[#163b78]">"Defender o consumidor é defender quem luta"</h3>
                 </div>
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#163b78] text-white">
                   <QuoteIcon className="h-7 w-7" />
