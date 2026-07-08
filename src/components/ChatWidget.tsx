@@ -3,24 +3,17 @@ import { MessageCircle, X, Send, User, Phone, ChevronDown, Scale, History, Home,
 import {
   type Conversation,
   type Message,
-  addMessage,
-  createConversation,
-  getConversation,
-  listMessages,
-  findConversationsByUser,
-  findConversationsByPhone,
-  listMessagesFromConversations,
-  uploadAttachment,
-  subscribeMessages,
-} from '../services/landing-chat';
-import { playMessageSound, playOnlineSound } from '../lib/notification-sound';
-
-const ONLINE_THRESHOLD_MS = 30_000;
-
-function isOnline(conv: Conversation | null): boolean {
-  if (!conv?.last_attendant_seen) return false;
-  return Date.now() - new Date(conv.last_attendant_seen).getTime() < ONLINE_THRESHOLD_MS;
-}
+  sendMensagem,
+  createConversa,
+  getConversa,
+  listMensagens,
+  findConversasByPhone,
+  listMensagensFromConversas,
+  uploadChatAnexo,
+  resolveAnexoUrl,
+  subscribeConversaMensagens,
+} from '../services/fala-librelon-chat';
+import { playMessageSound } from '../lib/notification-sound';
 
 function maskPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -48,7 +41,6 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [wasOnline, setWasOnline] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [allConvs, setAllConvs] = useState<Conversation[]>([]);
@@ -80,12 +72,12 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   const loadUserHistory = useCallback(async (savedNome: string, savedTel: string) => {
     setLoadingHistory(true);
     try {
-      const conversations = await findConversationsByPhone(savedTel);
+      const conversations = await findConversasByPhone(savedTel);
       if (conversations.length > 0) {
         setAllConvs(conversations);
         const latest = conversations[0];
         const convIds = conversations.map(c => c.id);
-        const allMsgs = await listMessagesFromConversations(convIds);
+        const allMsgs = await listMensagensFromConversas(convIds);
         historyLoadedRef.current = true;
         setConvId(latest.id);
         setConv(latest);
@@ -119,8 +111,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
       historyLoadedRef.current = false;
       return;
     }
-    getConversation(convId).then(setConv);
-    listMessages(convId).then(msgs => {
+    getConversa(convId).then(setConv);
+    listMensagens(convId).then(msgs => {
       setMessages(msgs);
       prevCountRef.current = msgs.length;
       setTimeout(scrollToEnd, 100);
@@ -129,11 +121,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
 
   useEffect(() => {
     if (!convId) return;
-    const sub = subscribeMessages(convId, payload => {
-      const newMsg = payload.new as Message;
-      if (newMsg.sender !== 'user') {
-        setConv(prev => prev ? { ...prev, last_attendant_seen: new Date().toISOString() } : prev);
-      }
+    const sub = subscribeConversaMensagens(convId, async payload => {
+      const newMsg = await resolveAnexoUrl(payload.new as Message);
       setMessages(prev => {
         if (prev.some(m => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
@@ -145,30 +134,17 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   useEffect(() => {
     if (messages.length > prevCountRef.current) {
       const last = messages[messages.length - 1];
-      if (last && last.sender !== 'user') playMessageSound();
+      if (last && last.remetente_tipo !== 'citizen') playMessageSound();
       scrollToEnd();
     }
     prevCountRef.current = messages.length;
   }, [messages, scrollToEnd]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setConv(prev => prev ? { ...prev } : prev);
-    }, 5_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const currentlyOnline = isOnline(conv);
-  useEffect(() => {
-    if (currentlyOnline && !wasOnline) playOnlineSound();
-    setWasOnline(currentlyOnline);
-  }, [currentlyOnline, wasOnline]);
-
   const handleStart = async () => {
     if (!nome.trim() || !telefone.trim() || !termsAccepted || creating) return;
     setCreating(true);
     try {
-      const existing = await findConversationsByPhone(telefone.trim());
+      const existing = await findConversasByPhone(telefone.trim());
 
       if (existing.length > 0) {
         localStorage.setItem('chat_nome', nome.trim());
@@ -177,7 +153,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
         setAllConvs(existing);
         const latest = existing[0];
         const convIds = existing.map(c => c.id);
-        const allMsgs = await listMessagesFromConversations(convIds);
+        const allMsgs = await listMensagensFromConversas(convIds);
         historyLoadedRef.current = true;
         setConvId(latest.id);
         setConv(latest);
@@ -186,7 +162,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
         setStep('chat');
         setTimeout(scrollToEnd, 100);
       } else {
-        const newConv = await createConversation({ nome: nome.trim(), telefone: telefone.trim() });
+        const newConv = await createConversa({ nome_solicitante: nome.trim(), telefone_contato: telefone.trim() });
         localStorage.setItem('chat_nome', nome.trim());
         localStorage.setItem('chat_telefone', telefone.trim());
         setUserSaved(true);
@@ -206,44 +182,41 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
       const text = input.trim();
       setInput('');
 
-      let attachmentData: {
-        attachment_url?: string;
-        attachment_name?: string;
-        attachment_type?: string;
-        attachment_size?: number;
-      } = {};
+      let anexo: { path: string; nome: string; mime: string | null; tamanho: number | null } | undefined;
 
       if (attachedFile) {
         setUploadingFile(true);
         setAttachedFile(null);
-        const uploaded = await uploadAttachment(attachedFile, convId ?? 'pending');
-        attachmentData = uploaded;
+        anexo = await uploadChatAnexo(convId ?? 'pending', attachedFile);
         setUploadingFile(false);
       }
 
       const isResolved = conv && (conv.status === 'resolvido' || conv.status === 'arquivado');
 
       if (!convId || isResolved) {
-        const newConv = await createConversation({ nome, telefone });
+        const newConv = await createConversa({ nome_solicitante: nome, telefone_contato: telefone });
         historyLoadedRef.current = true;
         setConvId(newConv.id);
         setConv(newConv);
         setAllConvs(prev => [newConv, ...prev]);
-        const msg = await addMessage(newConv.id, {
-          sender: 'user',
-          sender_name: nome,
-          message: text,
-          ...attachmentData,
+        // Seed with the new conversation's own messages (the auto-greeting) rather
+        // than appending onto the previous (resolved) conversation's thread.
+        const greeting = await listMensagens(newConv.id);
+        const msg = await sendMensagem(newConv.id, {
+          remetente_tipo: 'citizen',
+          remetente_nome: nome,
+          mensagem: text || null,
+          anexo,
         });
-        setMessages(prev => [...prev, msg]);
+        setMessages([...greeting, msg]);
       } else {
-        const msg = await addMessage(convId, {
-          sender: 'user',
-          sender_name: nome,
-          message: text,
-          ...attachmentData,
+        const msg = await sendMensagem(convId, {
+          remetente_tipo: 'citizen',
+          remetente_nome: nome,
+          mensagem: text || null,
+          anexo,
         });
-        setMessages(prev => [...prev, msg]);
+        setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
       }
     } finally {
       setSending(false);
@@ -270,18 +243,8 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
               </div>
               <div>
                 <div className="text-sm font-bold">Defesa do Consumidor</div>
-                <div className="flex items-center gap-1">
-                  {currentlyOnline ? (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                      <span className="text-[10px] text-green-200">Online</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-                      <span className="text-[10px] text-zinc-300">Offline</span>
-                    </>
-                  )}
+                <div className="text-[10px] text-white/80">
+                  {conv?.status === 'aberto' ? 'Aguardando atendente...' : 'Em atendimento'}
                 </div>
               </div>
             </div>
@@ -470,7 +433,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
               ) : (
                 <div className="flex flex-col gap-2">
                   {allConvs.map(conv => {
-                    const convMessages = messages.filter(m => m.conversation_id === conv.id);
+                    const convMessages = messages.filter(m => m.conversa_id === conv.id);
                     const lastMsg = convMessages[convMessages.length - 1];
                     const date = new Date(conv.created_at);
                     const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -488,7 +451,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                           setConvId(conv.id);
                           setConv(conv);
                           setShowingHistory(false);
-                          setMessages(prev => prev.filter(m => m.conversation_id === conv.id));
+                          setMessages(prev => prev.filter(m => m.conversa_id === conv.id));
                           setTimeout(scrollToEnd, 100);
                         }}
                         className="flex flex-col items-start w-full text-left px-3 py-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 transition-colors border border-zinc-200"
@@ -500,7 +463,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                           </span>
                         </div>
                         <p className="text-sm text-zinc-700 line-clamp-2">
-                          {lastMsg ? lastMsg.message : 'Nenhuma mensagem'}
+                          {lastMsg ? lastMsg.mensagem : 'Nenhuma mensagem'}
                         </p>
                       </button>
                     );
@@ -527,7 +490,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                 )}
 
                 {messages.map(msg => {
-                  const isMe = msg.sender === 'user';
+                  const isMe = msg.remetente_tipo === 'citizen';
                   return (
                     <div key={msg.id} className="mb-2 flex flex-col" style={{ alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                       <div
@@ -543,20 +506,20 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                           className="text-sm leading-5"
                           style={{ color: isMe ? '#fff' : '#111827' }}
                         >
-                          {msg.message}
+                          {msg.mensagem}
                         </p>
-                        {msg.attachment_url && (
-                          msg.attachment_type?.startsWith('image/') ? (
-                            <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
-                              <img src={msg.attachment_url} alt={msg.attachment_name || ''} className="max-w-full rounded-lg" style={{ maxHeight: 160 }} />
+                        {msg.anexo_url && (
+                          msg.anexo_mime?.startsWith('image/') ? (
+                            <a href={msg.anexo_url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+                              <img src={msg.anexo_url} alt={msg.anexo_nome || ''} className="max-w-full rounded-lg" style={{ maxHeight: 160 }} />
                             </a>
                           ) : (
-                            <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
+                            <a href={msg.anexo_url} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1.5 rounded-lg"
                               style={{ backgroundColor: isMe ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }}
                             >
                               <FileText size={14} style={{ color: isMe ? '#fff' : '#111827' }} />
-                              <span className="text-xs truncate" style={{ color: isMe ? '#fff' : '#111827' }}>{msg.attachment_name}</span>
+                              <span className="text-xs truncate" style={{ color: isMe ? '#fff' : '#111827' }}>{msg.anexo_nome}</span>
                             </a>
                           )
                         )}
@@ -567,7 +530,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                       >
                         <span className="text-[10px] mr-1 text-zinc-500">{formatTime(msg.created_at)}</span>
                         {isMe && (
-                          msg.read
+                          msg.lido
                             ? <span className="text-green-500 text-[10px]">✓✓</span>
                             : <span className="text-zinc-500 text-[10px]">✓</span>
                         )}

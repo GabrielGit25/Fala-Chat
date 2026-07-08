@@ -1,22 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, CheckCheck, Send, Wifi, WifiOff, Scale } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, FileText, Send, Scale } from 'lucide-react';
 import {
   type Conversation,
   type Message,
-  addMessage,
-  getConversation,
-  listMessages,
-  subscribeMessages,
-} from '../services/landing-chat';
-import { playMessageSound, playOnlineSound } from '../lib/notification-sound';
-
-const ONLINE_THRESHOLD_MS = 30_000;
-
-function isOnline(conv: Conversation | null): boolean {
-  if (!conv?.last_attendant_seen) return false;
-  return Date.now() - new Date(conv.last_attendant_seen).getTime() < ONLINE_THRESHOLD_MS;
-}
+  sendMensagem,
+  getConversa,
+  listMensagens,
+  resolveAnexoUrl,
+  subscribeConversaMensagens,
+} from '../services/fala-librelon-chat';
+import { playMessageSound } from '../lib/notification-sound';
 
 function formatTime(dateStr: string): string {
   const d = new Date(dateStr);
@@ -31,7 +25,6 @@ export default function LandingChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [wasOnline, setWasOnline] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevCountRef = useRef(0);
@@ -46,8 +39,8 @@ export default function LandingChat() {
 
   useEffect(() => {
     if (!id) return;
-    getConversation(id).then(setConv);
-    listMessages(id).then(msgs => {
+    getConversa(id).then(setConv);
+    listMensagens(id).then(msgs => {
       setMessages(msgs);
       prevCountRef.current = msgs.length;
       setTimeout(scrollToEnd, 100);
@@ -56,11 +49,8 @@ export default function LandingChat() {
 
   useEffect(() => {
     if (!id) return;
-    const sub = subscribeMessages(id, payload => {
-      const newMsg = payload.new as Message;
-      if (newMsg.sender !== 'user') {
-        setConv(prev => prev ? { ...prev, last_attendant_seen: new Date().toISOString() } : prev);
-      }
+    const sub = subscribeConversaMensagens(id, async payload => {
+      const newMsg = await resolveAnexoUrl(payload.new as Message);
       setMessages(prev => {
         if (prev.some(m => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
@@ -72,24 +62,11 @@ export default function LandingChat() {
   useEffect(() => {
     if (messages.length > prevCountRef.current) {
       const last = messages[messages.length - 1];
-      if (last && last.sender !== 'user') playMessageSound();
+      if (last && last.remetente_tipo !== 'citizen') playMessageSound();
       scrollToEnd();
     }
     prevCountRef.current = messages.length;
   }, [messages, scrollToEnd]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setConv(prev => prev ? { ...prev } : prev);
-    }, 5_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const currentlyOnline = isOnline(conv);
-  useEffect(() => {
-    if (currentlyOnline && !wasOnline) playOnlineSound();
-    setWasOnline(currentlyOnline);
-  }, [currentlyOnline, wasOnline]);
 
   const handleSend = async () => {
     if (!input.trim() || !id || sending) return;
@@ -97,11 +74,12 @@ export default function LandingChat() {
     try {
       const text = input.trim();
       setInput('');
-      await addMessage(id, {
-        sender: 'user',
-        sender_name: conv?.nome ?? 'Usuário',
-        message: text,
+      const msg = await sendMensagem(id, {
+        remetente_tipo: 'citizen',
+        remetente_nome: conv?.nome_solicitante ?? 'Usuário',
+        mensagem: text,
       });
+      setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
     } finally {
       setSending(false);
     }
@@ -121,18 +99,8 @@ export default function LandingChat() {
           <div className="text-sm font-bold text-zinc-900">
             Defesa do Consumidor
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            {currentlyOnline ? (
-              <>
-                <Wifi size={12} className="text-green-500" />
-                <span className="text-xs text-green-500">Online</span>
-              </>
-            ) : (
-              <>
-                <WifiOff size={12} className="text-zinc-400" />
-                <span className="text-xs text-zinc-400">Offline</span>
-              </>
-            )}
+          <div className="text-xs text-zinc-500 mt-0.5">
+            {conv?.status === 'aberto' ? 'Aguardando atendente...' : 'Em atendimento'}
           </div>
         </div>
       </div>
@@ -145,7 +113,7 @@ export default function LandingChat() {
           </div>
         )}
         {messages.map(msg => {
-          const isMe = msg.sender === 'user';
+          const isMe = msg.remetente_tipo === 'citizen';
           return (
             <div key={msg.id} className="mb-2 flex flex-col" style={{ alignItems: isMe ? 'flex-end' : 'flex-start' }}>
               <div
@@ -157,12 +125,29 @@ export default function LandingChat() {
                   borderBottomLeftRadius: isMe ? 12 : 4,
                 }}
               >
-                <p
-                  className="text-base leading-5"
-                  style={{ color: isMe ? '#fff' : '#111827' }}
-                >
-                  {msg.message}
-                </p>
+                {msg.mensagem ? (
+                  <p
+                    className="text-base leading-5"
+                    style={{ color: isMe ? '#fff' : '#111827' }}
+                  >
+                    {msg.mensagem}
+                  </p>
+                ) : null}
+                {msg.anexo_url && (
+                  msg.anexo_mime?.startsWith('image/') ? (
+                    <a href={msg.anexo_url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+                      <img src={msg.anexo_url} alt={msg.anexo_nome || ''} className="max-w-full rounded-lg" style={{ maxHeight: 200 }} />
+                    </a>
+                  ) : (
+                    <a href={msg.anexo_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1.5 rounded-lg"
+                      style={{ backgroundColor: isMe ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }}
+                    >
+                      <FileText size={14} style={{ color: isMe ? '#fff' : '#111827' }} />
+                      <span className="text-xs truncate" style={{ color: isMe ? '#fff' : '#111827' }}>{msg.anexo_nome}</span>
+                    </a>
+                  )
+                )}
               </div>
               <div
                 className="flex items-center mt-0.5"
@@ -170,7 +155,7 @@ export default function LandingChat() {
               >
                 <span className="text-[10px] mr-1 text-zinc-500">{formatTime(msg.created_at)}</span>
                 {isMe &&
-                  (msg.read ? (
+                  (msg.lido ? (
                     <CheckCheck size={11} className="text-green-500" />
                   ) : (
                     <Check size={11} className="text-zinc-500" />
