@@ -12,7 +12,9 @@ import {
   uploadChatAnexo,
   resolveAnexoUrl,
   subscribeConversaMensagens,
+  updateConversaCategoria,
 } from '../services/fala-librelon-chat';
+import { CATEGORIA_OPTIONS, type ConversationCategoria } from '../types/chat';
 import { playMessageSound } from '../lib/notification-sound';
 
 function maskPhone(value: string): string {
@@ -49,6 +51,7 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [savingCategoria, setSavingCategoria] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showFullTerm, setShowFullTerm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -220,6 +223,29 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSelectCategoria = async (categoria: ConversationCategoria) => {
+    if (!convId || savingCategoria) return;
+    setSavingCategoria(true);
+    try {
+      const label = CATEGORIA_OPTIONS.find(c => c.value === categoria)?.label ?? categoria;
+      await updateConversaCategoria(convId, categoria);
+      setConv(prev => (prev ? { ...prev, categoria } : prev));
+      setAllConvs(prev => prev.map(c => (c.id === convId ? { ...c, categoria } : c)));
+      // Echo the choice into the thread as a citizen message so the atendente
+      // sees it (and gets an unread ping) like any other quick reply.
+      const msg = await sendMensagem(convId, {
+        remetente_tipo: 'citizen',
+        remetente_nome: nome,
+        mensagem: label,
+      });
+      setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
+    } catch (err) {
+      console.error('Erro ao selecionar categoria:', err);
+    } finally {
+      setSavingCategoria(false);
     }
   };
 
@@ -538,6 +564,27 @@ const ChatWidget = forwardRef<ChatWidgetHandle, object>(function ChatWidget(_pro
                     </div>
                   );
                 })}
+
+                {/* Category quick replies — shown until the citizen picks one */}
+                {conv && !conv.categoria && conv.status !== 'resolvido' && conv.status !== 'arquivado' && (
+                  <div className="flex flex-col items-start mb-2">
+                    <p className="text-xs text-zinc-500 mb-1.5 ml-1">
+                      Selecione uma categoria para agilizar seu atendimento:
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 w-full" style={{ maxWidth: '85%' }}>
+                      {CATEGORIA_OPTIONS.map(opt => (
+                        <button
+                          key={opt.value}
+                          onClick={() => handleSelectCategoria(opt.value)}
+                          disabled={savingCategoria}
+                          className="px-3 py-2 rounded-xl border border-[#f89d20] text-[#f89d20] text-sm font-semibold bg-white hover:bg-[#f89d20] hover:text-white transition-colors disabled:opacity-50"
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* File preview */}
