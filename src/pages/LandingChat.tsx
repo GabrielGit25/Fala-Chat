@@ -9,7 +9,9 @@ import {
   listMensagens,
   resolveAnexoUrl,
   subscribeConversaMensagens,
+  updateConversaCategoria,
 } from '../services/fala-librelon-chat';
+import { CATEGORIA_OPTIONS, type ConversationCategoria } from '../types/chat';
 import { playMessageSound } from '../lib/notification-sound';
 
 function formatTime(dateStr: string): string {
@@ -25,6 +27,7 @@ export default function LandingChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [savingCategoria, setSavingCategoria] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevCountRef = useRef(0);
@@ -82,6 +85,28 @@ export default function LandingChat() {
       setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSelectCategoria = async (categoria: ConversationCategoria) => {
+    if (!id || savingCategoria) return;
+    setSavingCategoria(true);
+    try {
+      const label = CATEGORIA_OPTIONS.find(c => c.value === categoria)?.label ?? categoria;
+      await updateConversaCategoria(id, categoria);
+      setConv(prev => (prev ? { ...prev, categoria } : prev));
+      // Echo the choice into the thread as a citizen message so the atendente
+      // sees it (and gets an unread ping) like any other quick reply.
+      const msg = await sendMensagem(id, {
+        remetente_tipo: 'citizen',
+        remetente_nome: conv?.nome_solicitante ?? 'Usuário',
+        mensagem: label,
+      });
+      setMessages(prev => (prev.some(m => m.id === msg.id) ? prev : [...prev, msg]));
+    } catch (err) {
+      console.error('Erro ao selecionar categoria:', err);
+    } finally {
+      setSavingCategoria(false);
     }
   };
 
@@ -164,6 +189,27 @@ export default function LandingChat() {
             </div>
           );
         })}
+
+        {/* Category quick replies — shown until the citizen picks one */}
+        {conv && !conv.categoria && conv.status !== 'resolvido' && conv.status !== 'arquivado' && (
+          <div className="flex flex-col items-start mb-2">
+            <p className="text-xs text-zinc-500 mb-1.5 ml-1">
+              Selecione uma categoria para agilizar seu atendimento:
+            </p>
+            <div className="grid grid-cols-2 gap-2 w-full" style={{ maxWidth: 360 }}>
+              {CATEGORIA_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleSelectCategoria(opt.value)}
+                  disabled={savingCategoria}
+                  className="px-3 py-2 rounded-xl border border-[#0047AB] text-[#0047AB] text-sm font-semibold bg-white hover:bg-[#0047AB] hover:text-white transition-colors disabled:opacity-50"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input */}

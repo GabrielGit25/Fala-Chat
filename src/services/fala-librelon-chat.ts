@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import type { Conversation, ConversationStatus, Message, RemetenteTipo } from '@/types/chat';
+import type {
+  Conversation,
+  ConversationCategoria,
+  ConversationStatus,
+  Message,
+  RemetenteTipo,
+} from '@/types/chat';
 
 export type { Conversation, Message };
 
@@ -8,6 +14,14 @@ const CONVERSAS_TABLE = 'fala_librelon_chat_conversas';
 const MENSAGENS_TABLE = 'fala_librelon_chat_mensagens';
 const ANEXOS_BUCKET = 'fala-librelon-chat-anexos';
 const SIGNED_URL_TTL = 3600;
+
+// Canonical stored format is digits-only (migration 032 in atuapolitica-frontend).
+// History recovery matches telefone_contato by exact string equality, so
+// normalizing here — at the service boundary — keeps every caller consistent,
+// including masked values still saved in citizens' localStorage.
+function normalizeTelefone(telefone: string): string {
+  return telefone.replace(/\D/g, '');
+}
 
 // ---- Conversas -----------------------------------------------------------------
 
@@ -30,7 +44,7 @@ export async function createConversa(data: {
     .insert([
       {
         nome_solicitante: data.nome_solicitante,
-        telefone_contato: data.telefone_contato,
+        telefone_contato: normalizeTelefone(data.telefone_contato),
         email: data.email ?? null,
         assunto: data.assunto ?? null,
         assigned_atendente: assignedAtendente ?? null,
@@ -72,7 +86,7 @@ export async function findConversasByPhone(telefone: string): Promise<Conversati
   const { data, error } = await supabase
     .from(CONVERSAS_TABLE)
     .select('*')
-    .eq('telefone_contato', telefone)
+    .eq('telefone_contato', normalizeTelefone(telefone))
     .order('last_message_at', { ascending: false, nullsFirst: false });
   if (error) throw new Error(error.message);
   return (data as Conversation[]) || [];
@@ -85,6 +99,17 @@ export async function updateConversaStatus(
   const { error } = await supabase
     .from(CONVERSAS_TABLE)
     .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateConversaCategoria(
+  id: string,
+  categoria: ConversationCategoria,
+): Promise<void> {
+  const { error } = await supabase
+    .from(CONVERSAS_TABLE)
+    .update({ categoria, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw new Error(error.message);
 }
